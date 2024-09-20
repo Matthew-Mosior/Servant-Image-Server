@@ -23,8 +23,6 @@ import Data.Text as T
 import Data.Text.Encoding
 import GHC.Generics
 import Network.HTTP.Client
-import Network.HTTP.Client.TLS
-import Network.HTTP.Req
 import Servant.API
 import Servant.Server
 
@@ -32,7 +30,6 @@ import Servant.Server
 data ImageServerEnv = ImageServerEnv
   { imageserverenv_sqliteconn      :: Connection
   , imageserverenv_httpmanager     :: Manager
-  , imageserverenv_httpconfig      :: HttpConfig
   , imageserverenv_imaggaapikey    :: Text
   , imageserverenv_imaggaapisecret :: Text
   } 

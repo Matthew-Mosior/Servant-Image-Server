@@ -27,10 +27,9 @@ dependencies:
 - db
 - exceptions
 - http-client
-- http-client-tls
+- http-types
 - imagga-parser
 - mtl
-- req
 - servant
 - servant-server
 - split

@@ -7,10 +7,10 @@ import Database.SQLite.Simple
 databasename :: String
 databasename = ":memory:"
 
-imagetablecreation :: String
+imagetablecreation :: Query
 imagetablecreation = "CREATE TABLE IF NOT EXISTS image (image_identifier INTEGER PRIMARY KEY, image_label TEXT, image_filepath TEXT)"
 
-imageobjectdetectiontablecreation :: String
+imageobjectdetectiontablecreation :: Query
 imageobjectdetectiontablecreation = "CREATE TABLE IF NOT EXISTS image_object_detection (image_object_detection_id INTEGER, object TEXT, FOREIGN KEY(image_object_detection_id) REFERENCES image(image_identifier))"
 
 getallimagemetadataquerystring :: Query

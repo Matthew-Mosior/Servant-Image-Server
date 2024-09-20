@@ -18,7 +18,7 @@ options =
       Option []        ["help"]                (NoArg Help)                   "Print this help message."
     ]
 
-compilerOpts :: [String] -> IO ([Flag],String)
+compilerOpts :: [String] -> IO ([Flag],[String])
 compilerOpts argv =
     case getOpt Permute options argv of
         (args,file,[]) ->
@@ -28,10 +28,10 @@ compilerOpts argv =
                | DL.elem Version args ->
                do hPutStrLn stderr (version ++ "\n" ++ SCG.usageInfo header options)
                   SX.exitWith SX.ExitSuccess
-               | DL.length file > 1 ->
+               | DL.length file /= 2 ->
                do hPutStrLn stderr (flerror ++ greeting ++ github ++ "\n" ++ SCG.usageInfo header options)
                   SX.exitWith (SX.ExitFailure 1)
-               | otherwise -> return (DL.nub args, DL.concat file)
+               | otherwise -> return (DL.nub args, file)
         (_,_,errors) -> do
             hPutStrLn stderr (DL.concat errors ++ "\n" ++ SCG.usageInfo header options)
             SX.exitWith (SX.ExitFailure 1)

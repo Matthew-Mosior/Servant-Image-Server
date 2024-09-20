@@ -42,10 +42,9 @@ library
     , db
     , exceptions
     , http-client
-    , http-client-tls
+    , http-types
     , imagga-parser
     , mtl
-    , req
     , servant
     , servant-server
     , split
@@ -72,10 +71,9 @@ executable server-exe
     , db
     , exceptions
     , http-client
-    , http-client-tls
+    , http-types
     , imagga-parser
     , mtl
-    , req
     , servant
     , servant-server
     , server
@@ -104,10 +102,9 @@ test-suite server-test
     , db
     , exceptions
     , http-client
-    , http-client-tls
+    , http-types
     , imagga-parser
     , mtl
-    , req
     , servant
     , servant-server
     , server
