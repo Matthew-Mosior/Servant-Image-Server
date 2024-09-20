@@ -9,6 +9,7 @@ module Server where
 
 import API     (imageServerAPI)
 import API.API (ImageInput(..),ImageInput'(..),Image(..),ImageServerAPI)
+import Parser
 
 import Control.Monad (forM)
 import Control.Monad.Catch (MonadThrow)
