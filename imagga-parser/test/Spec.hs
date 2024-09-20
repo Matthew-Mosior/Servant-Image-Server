@@ -18,5 +18,13 @@ main = do
                           Just imaggatestjson'' ->
                             Prelude.map (en . tag)
                                         (tags $ result imaggatestjson'')
+  let imaggatesten'    = case imaggatestjson' of
+                          Nothing               ->
+                            []
+                          Just imaggatestjson'' ->
+                            Prelude.filter (\(_,y) -> y >= 50) $
+                            Prelude.map (\x -> ((en . tag) x, confidence x))
+                                        (tags $ result imaggatestjson'')
   putStrLn $ show imaggatestjson'
   putStrLn $ show imaggatesten
+  putStrLn $ show imaggatesten'
