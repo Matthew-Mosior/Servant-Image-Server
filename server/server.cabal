@@ -25,6 +25,7 @@ source-repository head
 
 library
   exposed-modules:
+      CompilerOpts
       Server
   other-modules:
       Paths_server

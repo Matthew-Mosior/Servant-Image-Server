@@ -5,7 +5,7 @@ module Database where
 import Database.SQLite.Simple
 
 databasename :: String
-databasename = "image.db"
+databasename = ":memory:"
 
 imagetablecreation :: String
 imagetablecreation = "CREATE TABLE IF NOT EXISTS image (image_identifier INTEGER PRIMARY KEY, image_label TEXT, image_filepath TEXT)"

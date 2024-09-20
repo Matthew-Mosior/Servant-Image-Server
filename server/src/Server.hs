@@ -32,6 +32,7 @@ import Servant.Server
 data ImageServerEnv = ImageServerEnv
   { imageserverenv_sqliteconn      :: Connection
   , imageserverenv_httpmanager     :: Manager
+  , imageserverenv_httpconfig      :: HttpConfig
   , imageserverenv_imaggaapikey    :: Text
   , imageserverenv_imaggaapisecret :: Text
   } 
