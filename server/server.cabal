@@ -38,7 +38,10 @@ library
     , api
     , base >=4.7 && <5
     , bytestring
+    , db
     , exceptions
+    , http-client
+    , http-client-tls
     , imagga-parser
     , mtl
     , req
@@ -65,7 +68,10 @@ executable server-exe
     , api
     , base >=4.7 && <5
     , bytestring
+    , db
     , exceptions
+    , http-client
+    , http-client-tls
     , imagga-parser
     , mtl
     , req
@@ -94,7 +100,10 @@ test-suite server-test
     , api
     , base >=4.7 && <5
     , bytestring
+    , db
     , exceptions
+    , http-client
+    , http-client-tls
     , imagga-parser
     , mtl
     , req

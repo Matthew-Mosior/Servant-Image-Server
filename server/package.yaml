@@ -26,6 +26,8 @@ dependencies:
 - bytestring
 - db
 - exceptions
+- http-client
+- http-client-tls
 - imagga-parser
 - mtl
 - req

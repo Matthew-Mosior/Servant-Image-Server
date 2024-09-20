@@ -9,6 +9,7 @@ module Server where
 
 import API     (imageServerAPI)
 import API.API (ImageInput(..),ImageInput'(..),Image(..),ImageServerAPI)
+import Database
 import Parser
 
 import Control.Monad (forM)
@@ -21,12 +22,16 @@ import Database.SQLite.Simple
 import Data.Text as T
 import Data.Text.Encoding
 import GHC.Generics
+import Network.HTTP.Client
+import Network.HTTP.Client.TLS
+import Network.HTTP.Req
 import Servant.API
 import Servant.Server
 
 -- Environment 
 data ImageServerEnv = ImageServerEnv
-  { imageserverenv_sqliteconn :: Connection
+  { imageserverenv_sqliteconn  :: Connection
+  , imageserverenv_httpmanager :: Manager 
   } 
 
 newtype ImageServerT a = ImageServerT 
@@ -52,8 +57,9 @@ imageServerT = getAllImageMetadata :<|>
     getAllImageMetadata = do
       env <- ask
       liftIO $ query_ (imageserverenv_sqliteconn env)
-                      "SELECT * FROM image" :: ImageServerT [Image]
-    
+                      --"SELECT * FROM image" :: ImageServerT [Image]
+                      getallimagemetadataquerystring :: ImageServerT [Image]                          
+
     -- GET `/images?objects="dog,cat"`
     -- Returns a HTTP `200` OK with a JSON response body containing only images
     -- that have the detected objects specified in the query parameter.
@@ -68,7 +74,8 @@ imageServerT = getAllImageMetadata :<|>
       results <-
         forM querystring' $ \currentquerystring ->
           liftIO $ queryNamed (imageserverenv_sqliteconn env)
-                              "SELECT image.image_identifer, image,image_label, image.image_filepath FROM image INNER_JOIN image_object_detection ON image.image_identifier=image_object_detection.image_object_detection_id WHERE image_object_detection.object == :object"
+                              --"SELECT image.image_identifer, image,image_label, image.image_filepath FROM image INNER_JOIN image_object_detection ON image.image_identifier=image_object_detection.image_object_detection_id WHERE image_object_detection.object == :object"
+                              getimagesquerystring
                               [":object" := currentquerystring]
       return $ Prelude.concat results
     
@@ -78,7 +85,8 @@ imageServerT = getAllImageMetadata :<|>
     getImageById imageid = do
       env    <- ask
       result <- liftIO $ queryNamed (imageserverenv_sqliteconn env)
-                                    "SELECT * FROM image WHERE image_identifier == :id"
+                                    --"SELECT * FROM image WHERE image_identifier == :id"
+                                    getimagebyidquerystring
                                     [":id" := imageid]
       return result
     
@@ -101,7 +109,8 @@ imageServerT = getAllImageMetadata :<|>
                                     Nothing    -> T.pack $ show rowId
                                     Just label -> label
           _ <- liftIO $ execute (imageserverenv_sqliteconn env)
-                                "INSERT INTO image (image_identifier, image_label, image_filepath) VALUES (?,?,?)"
+                                --"INSERT INTO image (image_identifier, image_label, image_filepath) VALUES (?,?,?)"
+                                postimagequerystring
                                 ( Image (fromIntegral rowId)
                                         imageinput_label'
                                         ( imageinput_filepath imageinput
@@ -120,7 +129,8 @@ imageServerT = getAllImageMetadata :<|>
                                     Nothing    -> T.pack $ show rowId
                                     Just label -> label
           _ <- liftIO $ execute (imageserverenv_sqliteconn env)
-                                "INSERT INTO image (image_identifier, image_label, image_filepath) VALUES (?,?,?)"
+                                --"INSERT INTO image (image_identifier, image_label, image_filepath) VALUES (?,?,?)"
+                                postimagequerystring
                                 ( Image (fromIntegral rowId)
                                         imageinput_label'
                                         ( imageinput_filepath imageinput
