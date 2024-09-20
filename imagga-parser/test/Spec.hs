@@ -22,6 +22,7 @@ main = do
                           Nothing               ->
                             []
                           Just imaggatestjson'' ->
+                            Prelude.map fst                    $
                             Prelude.filter (\(_,y) -> y >= 50) $
                             Prelude.map (\x -> ((en . tag) x, confidence x))
                                         (tags $ result imaggatestjson'')
