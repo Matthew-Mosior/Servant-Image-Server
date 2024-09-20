@@ -30,8 +30,10 @@ import Servant.Server
 
 -- Environment 
 data ImageServerEnv = ImageServerEnv
-  { imageserverenv_sqliteconn  :: Connection
-  , imageserverenv_httpmanager :: Manager 
+  { imageserverenv_sqliteconn      :: Connection
+  , imageserverenv_httpmanager     :: Manager
+  , imageserverenv_imaggaapikey    :: Text
+  , imageserverenv_imaggaapisecret :: Text
   } 
 
 newtype ImageServerT a = ImageServerT 
