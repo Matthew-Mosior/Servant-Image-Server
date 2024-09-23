@@ -25,7 +25,8 @@ source-repository head
 
 library
   exposed-modules:
-      Parser
+      Tags
+      Uploads
   other-modules:
       Paths_imagga_parser
   autogen-modules:

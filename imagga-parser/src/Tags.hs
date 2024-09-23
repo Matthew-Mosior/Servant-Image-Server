@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Parser where
+module Tags where
 
 import GHC.Generics
 import Data.Aeson as DA hiding (Result(..))
@@ -48,10 +48,10 @@ instance ToJSON Status where
     object ["text" .= txt, "type" .= typ]
 
 -- Main data type to capture the overall JSON structure
-data ApiResponse = ApiResponse
+data TagResponse = TagResponse
   { result :: Result
   , status :: Status
   } deriving (Show, Generic)
 
-instance FromJSON ApiResponse
-instance ToJSON ApiResponse
+instance FromJSON TagResponse
+instance ToJSON TagResponse
