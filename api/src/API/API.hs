@@ -11,7 +11,7 @@ import GHC.Generics
 import Servant.API
 
 data ImageInput = ImageInput
-  { imageinput_filepath              :: Text
+  { imageinput_url                   :: Text
   , imageinput_label                 :: Maybe Text
   , imageinput_enableobjectdetection :: Bool
   } deriving (Show, Generic)
@@ -20,7 +20,7 @@ instance FromJSON ImageInput
 instance ToJSON ImageInput
 
 data ImageInput' = ImageInput'
-  { imageinput'_filepath              :: Text
+  { imageinput'_url                   :: Text
   , imageinput'_data                  :: Text
   , imageinput'_label                 :: Text
   , imageinput'_enableobjectdetection :: Bool
@@ -32,7 +32,7 @@ instance ToJSON ImageInput'
 data Image = Image
   { image_identifer  :: Int
   , image_label      :: Text
-  , image_filepath   :: Text
+  , image_url        :: Text
   } deriving (Show, Generic)
 
 instance FromJSON Image
@@ -41,7 +41,7 @@ instance ToJSON Image
 instance FromRow Image where
   fromRow = Image <$> field <*> field <*> field
 instance ToRow Image where
-  toRow (Image id_ label_ data_) = toRow (id_, label_, data_)
+  toRow (Image id_ label_ url_) = toRow (id_, label_, url_)
 
 data ImageObjectDetection = ImageObjectDetection
   { imageobjectdetection_identifier     :: Int
@@ -58,8 +58,6 @@ instance ToRow ImageObjectDetection where
 
 -- GET `/images`
 -- Returns HTTP `200` OK with a JSON response containing all image metadata.
---type ImageServerGetAllImageMetadata = "images" :> Get '[JSON] [Image]
-
 -- GET `/images?objects="dog,cat"`
 -- Returns a HTTP `200` OK with a JSON response body containing only images that have the detected objects specified in the query parameter.
 type ImageServerGetImages           = "images" :> QueryParam "objects" Text :> Get '[JSON] [Image]
@@ -72,11 +70,6 @@ type ImageServerGetImageById        = "images" :> Capture "imageid" Int :> Get '
 -- Send a JSON request body including an image file or URL, an optional label for the image,
 -- and an optional field to enable object detection
 type ImageServerPostImages          = "images" :> ReqBody '[JSON] ImageInput :> Post '[JSON] ImageInput'
-
---type ImageServerAPI = ImageServerGetAllImageMetadata :<|>
---                      ImageServerGetImages           :<|>
---                      ImageServerGetImageById        :<|>
---                      ImageServerPostImages 
 
 type ImageServerAPI = ImageServerGetImages    :<|>
                       ImageServerGetImageById :<|>
