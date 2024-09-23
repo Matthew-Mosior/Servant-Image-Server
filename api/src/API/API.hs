@@ -35,11 +35,6 @@ data Image = Image
   , image_filepath   :: Text
   } deriving (Show, Generic)
 
-data ImageObjectDetection = ImageObjectDetection
-  { imageobjectdetection_identifier      :: Int
-  , imageobjectdetection_objectsdetected :: [Text]
-  } deriving (Show, Generic)
-
 instance FromJSON Image
 instance ToJSON Image
 
@@ -47,6 +42,19 @@ instance FromRow Image where
   fromRow = Image <$> field <*> field <*> field
 instance ToRow Image where
   toRow (Image id_ label_ data_) = toRow (id_, label_, data_)
+
+data ImageObjectDetection = ImageObjectDetection
+  { imageobjectdetection_identifier     :: Int
+  , imageobjectdetection_objectdetected :: Text
+  } deriving (Show, Generic)
+
+instance FromJSON ImageObjectDetection
+instance ToJSON ImageObjectDetection
+
+instance FromRow ImageObjectDetection where
+  fromRow = ImageObjectDetection <$> field <*> field
+instance ToRow ImageObjectDetection where
+  toRow (ImageObjectDetection id_ object_) = toRow (id_, object_)
 
 -- GET `/images`
 -- Returns HTTP `200` OK with a JSON response containing all image metadata.

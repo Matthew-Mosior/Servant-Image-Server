@@ -8,11 +8,13 @@
 module Server where
 
 import API     (imageServerAPI)
-import API.API (ImageInput(..),ImageInput'(..),Image(..),ImageServerAPI)
+import API.API (ImageInput(..),ImageInput'(..),Image(..),ImageObjectDetection(..),ImageServerAPI)
 import Database
-import Parser
+import Imagga.ImaggaRequests
+import Tags as T
+import Uploads as U
 
-import Control.Monad (forM)
+import Control.Monad (forM,forM_)
 import Control.Monad.Catch (MonadThrow)
 import Control.Monad.Except
 import Control.Monad.Reader
@@ -110,7 +112,7 @@ imageServerT = getAllImageMetadata :<|>
                                     Just label -> label
           _ <- liftIO $ execute (imageserverenv_sqliteconn env)
                                 --"INSERT INTO image (image_identifier, image_label, image_filepath) VALUES (?,?,?)"
-                                postimagequerystring
+                                postimageinsertimagequerystring
                                 ( Image (fromIntegral rowId)
                                         imageinput_label'
                                         ( imageinput_filepath imageinput
@@ -123,6 +125,40 @@ imageServerT = getAllImageMetadata :<|>
                      , imageinput'_enableobjectdetection = False 
                      }
         True  -> do
+          {-
+	  imaggauploadrequest  <- parseRequest $ "https://api.imagga.com/v2/uploads?image=" ++
+                                                 (T.unpack $ imageinput_filepath imageinput)
+	  let imaggauploadrequest' = imaggauploadrequest
+                                       { method = "POST"
+                                       }
+          imaggauploadresponse <- liftIO $ httpLbs imaggauploadrequest'
+                                                   (imageserverenv_httpmanager env)
+          let imaggauploadresponse' = decode $ responseBody imaggauploadresponse :: Maybe UploadResponse
+          let imaggauploadid        = case imaggauploadresponse' of
+                                        Nothing                  ->
+                                          T.empty
+                                        Just imaggauploadresponse'' ->
+                                          uploadId $ U.result imaggauploadresponse''
+          -} 
+          imaggauploadid <- liftIO $ imaggaRequestUpload (imageserverenv_httpmanager env)
+                                                         (T.unpack $ imageinput_filepath imageinput)
+          {-
+          imaggatagrequest  <- parseRequest $ "https://api.imagga.com/v2/tags?image_upload_id=" ++
+                                              (T.unpack imaggauploadid)
+          imaggatagresponse <- liftIO $ httpLbs imaggatagrequest
+                                                   (imageserverenv_httpmanager env)
+          let imaggatagresponse' = decode $ responseBody imaggatagresponse :: Maybe TagResponse
+          let imaggatags         = case imaggatagresponse' of
+                                     Nothing                  ->
+                                       []
+                                     Just imaggatagresponse'' ->
+                                       Prelude.map fst                    $
+                                       Prelude.filter (\(_,y) -> y >= 50) $
+                                       Prelude.map (\x -> ((en . tag) x, confidence x))
+                                                   (tags $ T.result imaggatagresponse'')
+          -}
+          imaggatags <- liftIO $ imaggaRequestTag (imageserverenv_httpmanager env)
+                                         (T.unpack imaggauploadid)
           imagedata' <- liftIO $ DBL.readFile $ T.unpack $ imageinput_filepath imageinput
           rowId <- liftIO $ lastInsertRowId $ imageserverenv_sqliteconn env
           let imageinput_label' = case imageinput_label imageinput of
@@ -130,12 +166,19 @@ imageServerT = getAllImageMetadata :<|>
                                     Just label -> label
           _ <- liftIO $ execute (imageserverenv_sqliteconn env)
                                 --"INSERT INTO image (image_identifier, image_label, image_filepath) VALUES (?,?,?)"
-                                postimagequerystring
+                                postimageinsertimagequerystring
                                 ( Image (fromIntegral rowId)
                                         imageinput_label'
                                         ( imageinput_filepath imageinput
                                         )
                                 )
+          _ <- liftIO $ forM_ imaggatags $ \currenttag ->
+                 execute (imageserverenv_sqliteconn env)
+                         --"INSERT INTO image_object_detection (image_identifier, object) VALUES (?,?)"
+                         postimageinsertobjectsquerystring
+                         ( ImageObjectDetection (fromIntegral rowId)
+                                                currenttag
+                         )
           return $ ImageInput'
                      { imageinput'_filepath              = imageinput_filepath imageinput
                      , imageinput'_data                  = decodeUtf8 $ toStrict imagedata'

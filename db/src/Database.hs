@@ -22,5 +22,8 @@ getimagesquerystring = "SELECT image.image_identifer, image,image_label, image.i
 getimagebyidquerystring :: Query
 getimagebyidquerystring = "SELECT * FROM image WHERE image_identifier == :id"
 
-postimagequerystring :: Query
-postimagequerystring = "INSERT INTO image (image_identifier, image_label, image_filepath) VALUES (?,?,?)"
+postimageinsertimagequerystring :: Query
+postimageinsertimagequerystring = "INSERT INTO image (image_identifier, image_label, image_filepath) VALUES (?,?,?)"
+
+postimageinsertobjectsquerystring :: Query
+postimageinsertobjectsquerystring = "INSERT INTO image_object_detection (image_identifier, object) VALUES (?,?)"

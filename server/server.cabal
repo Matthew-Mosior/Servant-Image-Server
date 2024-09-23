@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       CompilerOpts
+      Imagga.ImaggaRequests
       Server
   other-modules:
       Paths_server
