@@ -39,10 +39,12 @@ library
       aeson
     , api
     , base >=4.7 && <5
+    , base64-bytestring
     , bytestring
     , db
     , exceptions
     , http-client
+    , http-client-tls
     , http-types
     , imagga-parser
     , mtl
@@ -68,10 +70,12 @@ executable server-exe
       aeson
     , api
     , base >=4.7 && <5
+    , base64-bytestring
     , bytestring
     , db
     , exceptions
     , http-client
+    , http-client-tls
     , http-types
     , imagga-parser
     , mtl
@@ -99,10 +103,12 @@ test-suite server-test
       aeson
     , api
     , base >=4.7 && <5
+    , base64-bytestring
     , bytestring
     , db
     , exceptions
     , http-client
+    , http-client-tls
     , http-types
     , imagga-parser
     , mtl

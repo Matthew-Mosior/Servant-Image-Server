@@ -18,12 +18,10 @@ import Control.Monad (forM,forM_)
 import Control.Monad.Catch (MonadThrow)
 import Control.Monad.Except
 import Control.Monad.Reader
-import Data.Aeson
-import Data.ByteString.Lazy as DBL
 import Database.SQLite.Simple
 import Data.Text as T
+import Data.Text.IO as TIO
 import Data.Text.Encoding
-import GHC.Generics
 import Network.HTTP.Client
 import Servant.API
 import Servant.Server
@@ -105,7 +103,7 @@ imageServerT = getAllImageMetadata :<|>
       env <- ask
       case imageinput_enableobjectdetection imageinput of
         False -> do
-          imagedata' <- liftIO $ DBL.readFile $ T.unpack $ imageinput_filepath imageinput
+          imagedata' <- liftIO $ TIO.readFile $ T.unpack $ imageinput_filepath imageinput
           rowId <- liftIO $ lastInsertRowId $ imageserverenv_sqliteconn env
           let imageinput_label' = case imageinput_label imageinput of
                                     Nothing    -> T.pack $ show rowId
@@ -120,7 +118,7 @@ imageServerT = getAllImageMetadata :<|>
                                 )
           return $ ImageInput'
                      { imageinput'_filepath              = imageinput_filepath imageinput
-                     , imageinput'_data                  = decodeUtf8 $ toStrict imagedata'
+                     , imageinput'_data                  = imagedata'
                      , imageinput'_label                 = imageinput_label' 
                      , imageinput'_enableobjectdetection = False 
                      }
@@ -142,6 +140,8 @@ imageServerT = getAllImageMetadata :<|>
           -} 
           imaggauploadid <- liftIO $ imaggaRequestUpload (imageserverenv_httpmanager env)
                                                          (T.unpack $ imageinput_filepath imageinput)
+                                                         (imageserverenv_imaggaapikey env)
+                                                         (imageserverenv_imaggaapisecret env)
           {-
           imaggatagrequest  <- parseRequest $ "https://api.imagga.com/v2/tags?image_upload_id=" ++
                                               (T.unpack imaggauploadid)
@@ -158,8 +158,11 @@ imageServerT = getAllImageMetadata :<|>
                                                    (tags $ T.result imaggatagresponse'')
           -}
           imaggatags <- liftIO $ imaggaRequestTag (imageserverenv_httpmanager env)
-                                         (T.unpack imaggauploadid)
-          imagedata' <- liftIO $ DBL.readFile $ T.unpack $ imageinput_filepath imageinput
+                                                  (T.unpack imaggauploadid)
+                                                  (imageserverenv_imaggaapikey env)
+                                                  (imageserverenv_imaggaapisecret env)
+          imagedata' <- liftIO $ TIO.readFile $ T.unpack $ imageinput_filepath imageinput
+          _ <- liftIO $ TIO.putStrLn imagedata'
           rowId <- liftIO $ lastInsertRowId $ imageserverenv_sqliteconn env
           let imageinput_label' = case imageinput_label imageinput of
                                     Nothing    -> T.pack $ show rowId
@@ -181,7 +184,7 @@ imageServerT = getAllImageMetadata :<|>
                          )
           return $ ImageInput'
                      { imageinput'_filepath              = imageinput_filepath imageinput
-                     , imageinput'_data                  = decodeUtf8 $ toStrict imagedata'
+                     , imageinput'_data                  = imagedata'
                      , imageinput'_label                 = imageinput_label' 
                      , imageinput'_enableobjectdetection = False 
                      }

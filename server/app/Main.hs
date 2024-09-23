@@ -12,6 +12,7 @@ import Data.List as DL
 import Data.Text as T
 import Database.SQLite.Simple as DSQS
 import Network.HTTP.Client as NHTTPC
+import Network.HTTP.Client.TLS
 import Network.HTTP.Types.Status (statusCode)
 import Network.Wai
 import Network.Wai.Handler.Warp
@@ -30,7 +31,7 @@ main = do
   --execute_ conn imageobjectdetectiontablecreation--"CREATE TABLE IF NOT EXISTS image_object_detection (image_object_detection_id INTEGER, object TEXT, FOREIGN KEY(image_object_detection_id) REFERENCES image(image_identifier))"
   DSQS.withConnection "" $ \conn -> do
     -- Set up HTTP prerequisite.
-    manager <- newManager defaultManagerSettings
+    manager <- newManager tlsManagerSettings--defaultManagerSettings
     execute_ conn imagetablecreation--"CREATE TABLE IF NOT EXISTS image (image_identifier INTEGER PRIMARY KEY, image_label TEXT, image_filepath TEXT)"
     execute_ conn imageobjectdetectiontablecreation--"CREATE TABLE IF NOT EXISTS image_object_detection (image_object_detection_id INTEGER, object TEXT, FOREIGN KEY(image_object_detection_id) REFERENCES image(image_identifier))"
     -- Set up environment.
