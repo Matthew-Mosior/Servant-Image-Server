@@ -18,9 +18,10 @@ import Control.Monad (forM,forM_)
 import Control.Monad.Catch (MonadThrow)
 import Control.Monad.Except
 import Control.Monad.Reader
+import Data.ByteString as DB
+import Data.ByteString.Base64 as B64
 import Database.SQLite.Simple
 import Data.Text as T
-import Data.Text.IO as TIO
 import Data.Text.Encoding
 import Network.HTTP.Client
 import Servant.API
@@ -46,11 +47,12 @@ readerToHandler env imageservert = do
     Right s -> return s
 
 imageServerT :: ServerT ImageServerAPI ImageServerT
-imageServerT = getAllImageMetadata :<|>
+imageServerT = --getAllImageMetadata :<|>
                getImages           :<|>
                getImageById        :<|>
                postImage
   where
+    {-
     -- GET `/images`
     -- Returns HTTP `200` OK with a JSON response containing all image metadata.
     getAllImageMetadata :: ImageServerT [Image]
@@ -59,18 +61,22 @@ imageServerT = getAllImageMetadata :<|>
       liftIO $ query_ (imageserverenv_sqliteconn env)
                       --"SELECT * FROM image" :: ImageServerT [Image]
                       getallimagemetadataquerystring :: ImageServerT [Image]                          
+    -}
 
     -- GET `/images?objects="dog,cat"`
     -- Returns a HTTP `200` OK with a JSON response body containing only images
     -- that have the detected objects specified in the query parameter.
+    {-
     getImages :: Maybe Text -> ImageServerT [Image]
     getImages querystring = do
       env <- ask
+      _ <- liftIO $ putStrLn $ show querystring
       querystring' <- case querystring of
-                           Nothing            ->
-                             throwError $ (ServerError 500 "Failed Computation" "" [])
-                           Just querystring'' ->
-                             return $ splitOn "," querystring'' 
+                        Nothing            ->
+                          throwError $ (ServerError 500 "Failed Computation" "" [])
+                        Just querystring'' ->
+                          return $ splitOn "," querystring''
+      _ <- liftIO $ putStrLn $ show querystring'
       results <-
         forM querystring' $ \currentquerystring ->
           liftIO $ queryNamed (imageserverenv_sqliteconn env)
@@ -78,7 +84,27 @@ imageServerT = getAllImageMetadata :<|>
                               getimagesquerystring
                               [":object" := currentquerystring]
       return $ Prelude.concat results
-    
+    -}
+    getImages :: Maybe Text -> ImageServerT [Image]
+    getImages querystring = do
+      env <- ask
+      _ <- liftIO $ putStrLn $ show querystring
+      case querystring of
+        Nothing            ->
+          liftIO $ query_ (imageserverenv_sqliteconn env)
+                          --"SELECT * FROM image" :: ImageServerT [Image]
+                          getallimagemetadataquerystring :: ImageServerT [Image]
+        Just querystring'' -> do
+          let querystring' = splitOn "," querystring''
+          _ <- liftIO $ putStrLn $ show querystring'
+          results <-
+            forM querystring' $ \currentquerystring ->
+              liftIO $ queryNamed (imageserverenv_sqliteconn env)
+                                  --"SELECT image.image_identifer, image,image_label, image.image_filepath FROM image INNER_JOIN image_object_detection ON image.image_identifier=image_object_detection.image_object_detection_id WHERE image_object_detection.object == :object"
+                                  getimagesquerystring
+                                  [":object" := currentquerystring]
+          return $ Prelude.concat results 
+
     -- GET `/images/{imageId}`
     -- Returns HTTP `200` OK with a JSON response containing image metadata for the specified image.
     getImageById :: Int -> ImageServerT [Image]
@@ -103,7 +129,8 @@ imageServerT = getAllImageMetadata :<|>
       env <- ask
       case imageinput_enableobjectdetection imageinput of
         False -> do
-          imagedata' <- liftIO $ TIO.readFile $ T.unpack $ imageinput_filepath imageinput
+          imagedata' <- liftIO $ DB.readFile $ T.unpack $ imageinput_filepath imageinput
+          let imagedata'' = B64.encode imagedata'
           rowId <- liftIO $ lastInsertRowId $ imageserverenv_sqliteconn env
           let imageinput_label' = case imageinput_label imageinput of
                                     Nothing    -> T.pack $ show rowId
@@ -118,51 +145,21 @@ imageServerT = getAllImageMetadata :<|>
                                 )
           return $ ImageInput'
                      { imageinput'_filepath              = imageinput_filepath imageinput
-                     , imageinput'_data                  = imagedata'
+                     , imageinput'_data                  = decodeUtf8 imagedata''
                      , imageinput'_label                 = imageinput_label' 
                      , imageinput'_enableobjectdetection = False 
                      }
         True  -> do
-          {-
-	  imaggauploadrequest  <- parseRequest $ "https://api.imagga.com/v2/uploads?image=" ++
-                                                 (T.unpack $ imageinput_filepath imageinput)
-	  let imaggauploadrequest' = imaggauploadrequest
-                                       { method = "POST"
-                                       }
-          imaggauploadresponse <- liftIO $ httpLbs imaggauploadrequest'
-                                                   (imageserverenv_httpmanager env)
-          let imaggauploadresponse' = decode $ responseBody imaggauploadresponse :: Maybe UploadResponse
-          let imaggauploadid        = case imaggauploadresponse' of
-                                        Nothing                  ->
-                                          T.empty
-                                        Just imaggauploadresponse'' ->
-                                          uploadId $ U.result imaggauploadresponse''
-          -} 
           imaggauploadid <- liftIO $ imaggaRequestUpload (imageserverenv_httpmanager env)
                                                          (T.unpack $ imageinput_filepath imageinput)
                                                          (imageserverenv_imaggaapikey env)
                                                          (imageserverenv_imaggaapisecret env)
-          {-
-          imaggatagrequest  <- parseRequest $ "https://api.imagga.com/v2/tags?image_upload_id=" ++
-                                              (T.unpack imaggauploadid)
-          imaggatagresponse <- liftIO $ httpLbs imaggatagrequest
-                                                   (imageserverenv_httpmanager env)
-          let imaggatagresponse' = decode $ responseBody imaggatagresponse :: Maybe TagResponse
-          let imaggatags         = case imaggatagresponse' of
-                                     Nothing                  ->
-                                       []
-                                     Just imaggatagresponse'' ->
-                                       Prelude.map fst                    $
-                                       Prelude.filter (\(_,y) -> y >= 50) $
-                                       Prelude.map (\x -> ((en . tag) x, confidence x))
-                                                   (tags $ T.result imaggatagresponse'')
-          -}
           imaggatags <- liftIO $ imaggaRequestTag (imageserverenv_httpmanager env)
                                                   (T.unpack imaggauploadid)
                                                   (imageserverenv_imaggaapikey env)
                                                   (imageserverenv_imaggaapisecret env)
-          imagedata' <- liftIO $ TIO.readFile $ T.unpack $ imageinput_filepath imageinput
-          _ <- liftIO $ TIO.putStrLn imagedata'
+          imagedata' <- liftIO $ DB.readFile $ T.unpack $ imageinput_filepath imageinput
+          let imagedata'' = B64.encode imagedata'
           rowId <- liftIO $ lastInsertRowId $ imageserverenv_sqliteconn env
           let imageinput_label' = case imageinput_label imageinput of
                                     Nothing    -> T.pack $ show rowId
@@ -184,7 +181,7 @@ imageServerT = getAllImageMetadata :<|>
                          )
           return $ ImageInput'
                      { imageinput'_filepath              = imageinput_filepath imageinput
-                     , imageinput'_data                  = imagedata'
+                     , imageinput'_data                  = decodeUtf8 imagedata''
                      , imageinput'_label                 = imageinput_label' 
                      , imageinput'_enableobjectdetection = False 
                      }

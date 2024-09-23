@@ -17,7 +17,7 @@ getallimagemetadataquerystring :: Query
 getallimagemetadataquerystring = "SELECT * FROM image"
 
 getimagesquerystring :: Query
-getimagesquerystring = "SELECT image.image_identifer, image,image_label, image.image_filepath FROM image INNER_JOIN image_object_detection ON image.image_identifier=image_object_detection.image_object_detection_id WHERE image_object_detection.object == :object"
+getimagesquerystring = "SELECT image.image_identifier, image.image_label, image.image_filepath FROM image INNER JOIN image_object_detection ON image.image_identifier=image_object_detection.image_object_detection_id WHERE image_object_detection.object == :object"
 
 getimagebyidquerystring :: Query
 getimagebyidquerystring = "SELECT * FROM image WHERE image_identifier == :id"
@@ -26,4 +26,4 @@ postimageinsertimagequerystring :: Query
 postimageinsertimagequerystring = "INSERT INTO image (image_identifier, image_label, image_filepath) VALUES (?,?,?)"
 
 postimageinsertobjectsquerystring :: Query
-postimageinsertobjectsquerystring = "INSERT INTO image_object_detection (image_identifier, object) VALUES (?,?)"
+postimageinsertobjectsquerystring = "INSERT INTO image_object_detection (image_object_detection_id, object) VALUES (?,?)"

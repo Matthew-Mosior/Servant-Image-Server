@@ -58,7 +58,7 @@ instance ToRow ImageObjectDetection where
 
 -- GET `/images`
 -- Returns HTTP `200` OK with a JSON response containing all image metadata.
-type ImageServerGetAllImageMetadata = "images" :> Get '[JSON] [Image]
+--type ImageServerGetAllImageMetadata = "images" :> Get '[JSON] [Image]
 
 -- GET `/images?objects="dog,cat"`
 -- Returns a HTTP `200` OK with a JSON response body containing only images that have the detected objects specified in the query parameter.
@@ -73,7 +73,11 @@ type ImageServerGetImageById        = "images" :> Capture "imageid" Int :> Get '
 -- and an optional field to enable object detection
 type ImageServerPostImages          = "images" :> ReqBody '[JSON] ImageInput :> Post '[JSON] ImageInput'
 
-type ImageServerAPI = ImageServerGetAllImageMetadata :<|>
-                      ImageServerGetImages           :<|>
-                      ImageServerGetImageById        :<|>
-                      ImageServerPostImages 
+--type ImageServerAPI = ImageServerGetAllImageMetadata :<|>
+--                      ImageServerGetImages           :<|>
+--                      ImageServerGetImageById        :<|>
+--                      ImageServerPostImages 
+
+type ImageServerAPI = ImageServerGetImages    :<|>
+                      ImageServerGetImageById :<|>
+                      ImageServerPostImages
