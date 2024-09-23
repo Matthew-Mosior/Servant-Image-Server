@@ -37,7 +37,7 @@ compilerOpts argv =
             SX.exitWith (SX.ExitFailure 1)
         where
             greeting       = "Servant Image Server, Copyright (c) 2024 Matthew Mosior.\n"
-            header         = "Usage: sis [-V] [apikey] [apisecret]\n"
+            header         = "Usage: stack exec server-exe [-V] [apikey] [apisecret]\n"
             version        = "Servant-Image-Server, Version 0.1.0.0.\n"
             github         = "Please see https://github.com/Matthew-Mosior/Basic-Variant-Parser for more information.\n"
             flerror        = "Please provide your imagga api key and api secret.\n"
