@@ -47,7 +47,7 @@ This will query the API with the image found at `https://docs.imagga.com/static/
 
 The response received will look something like below:
 
-`{"imageinput'_data":"...","imageinput'_enableobjectdetection":true,"imageinput'_identifier":10,"imageinput'_label":"japan","imageinput'_url":"https://docs.imagga.com/static/images/docs/sample/japan-605234_1280.jpg"}`
+`{"imageinput'_data":"...","imageinput'_enableobjectdetection":true,"imageinput'_identifier":10,"imageinput'_label":"japan","imageinput'_responsestatuscode":200,"imageinput'_url":"https://docs.imagga.com/static/images/docs/sample/japan-605234_1280.jpg"}`
 
 This will result in the server doing a few things:
  - Downloading and decoding the image file in order to return the raw image data.
