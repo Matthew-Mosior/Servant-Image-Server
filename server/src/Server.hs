@@ -25,6 +25,7 @@ import Network.HTTP.Client
 import Network.HTTP.Types.Status
 import Servant.API
 import Servant.Server
+import Text.Regex (mkRegex, matchRegex)
 
 -- Environment 
 data ImageServerEnv = ImageServerEnv
@@ -58,13 +59,21 @@ getImages querystring = do
       liftIO $ query_ (imageserverenv_sqliteconn env)
                       getallimagemetadataquerystring :: ImageServerT [Image]
     Just querystring'' -> do
-      let querystring' = splitOn "," querystring''
-      results <-
-        forM querystring' $ \currentquerystring ->
-          liftIO $ queryNamed (imageserverenv_sqliteconn env)
-                              getimagesquerystring
-                              [":object" := currentquerystring]
-      return $ Prelude.concat results 
+      -- Validate format of querystring.
+      let querystringregex = mkRegex "^[^,]+(,[^,]+)*$"
+        in case matchRegex querystringregex (T.unpack querystring'') of
+         Nothing ->
+           throwError $
+             err500 { errBody = "Could not parse querystring."
+                    }
+         Just _  -> do
+           let querystring' = splitOn "," querystring''
+           results <-
+             forM querystring' $ \currentquerystring ->
+               liftIO $ queryNamed (imageserverenv_sqliteconn env)
+                                   getimagesquerystring
+                                   [":object" := currentquerystring]
+           return $ Prelude.concat results 
 
 -- GET `/images/{imageId}`
 -- Returns HTTP `200` OK with a JSON response containing image metadata for the specified image.

@@ -49,6 +49,7 @@ library
     , http-types
     , imagga-parser
     , mtl
+    , regex-compat
     , servant
     , servant-server
     , split
@@ -81,6 +82,7 @@ executable server-exe
     , http-types
     , imagga-parser
     , mtl
+    , regex-compat
     , servant
     , servant-server
     , server
@@ -116,6 +118,7 @@ test-suite server-test
     , http-types
     , imagga-parser
     , mtl
+    , regex-compat
     , servant
     , servant-client
     , servant-server

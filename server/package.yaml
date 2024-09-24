@@ -33,6 +33,7 @@ dependencies:
 - http-types
 - imagga-parser
 - mtl
+- regex-compat
 - servant
 - servant-server
 - split
