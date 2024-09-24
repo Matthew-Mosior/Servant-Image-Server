@@ -55,9 +55,17 @@ getImages :: Maybe Text -> ImageServerT [Image]
 getImages querystring = do
   env <- ask
   case querystring of
-    Nothing            ->
-      liftIO $ query_ (imageserverenv_sqliteconn env)
-                      getallimagemetadataquerystring :: ImageServerT [Image]
+    Nothing            -> do
+      results <- liftIO $
+                   query_ (imageserverenv_sqliteconn env)
+                          getallimagemetadataquerystring :: ImageServerT [Image]
+      case results of
+        []       ->
+          throwError $
+            err500 { errBody = "No data to return from sqlite3 backend (empty database)."
+                   }
+        results' ->
+          return results'
     Just querystring'' -> do
       -- Validate format of querystring.
       let querystringregex = mkRegex "^[^,]+(,[^,]+)*$"
