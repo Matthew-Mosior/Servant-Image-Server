@@ -22,6 +22,7 @@ import Database.SQLite.Simple
 import Data.Text as T
 import Data.Text.Encoding
 import Network.HTTP.Client
+import Network.HTTP.Types.Status
 import Servant.API
 import Servant.Server
 
@@ -91,6 +92,7 @@ postImage imageinput = do
       imagedatarequest <- liftIO $ parseRequest (T.unpack $ imageinput_url imageinput)
       imagedataresponse <- liftIO $ httpLbs imagedatarequest (imageserverenv_httpmanager env)
       let imagedata'' = B64.encode $ toStrict $ responseBody imagedataresponse
+      let status      = responseStatus imagedataresponse
       rowId <- liftIO $ lastInsertRowId $ imageserverenv_sqliteconn env
       let imageinput_label' = case imageinput_label imageinput of
                                 Nothing    -> T.pack $ show rowId
@@ -108,12 +110,13 @@ postImage imageinput = do
                  , imageinput'_label                 = imageinput_label' 
                  , imageinput'_enableobjectdetection = False
                  , imageinput'_identifier            = fromIntegral rowId
+                 , imageinput'_responsestatuscode    = statusCode status 
                  }
     True  -> do
-      imaggatags <- liftIO $ imaggaRequestTag (imageserverenv_httpmanager env)
-                                              (T.unpack $ imageinput_url imageinput)
-                                              (imageserverenv_imaggaapikey env)
-                                              (imageserverenv_imaggaapisecret env)
+      (imaggatags,status) <- liftIO $ imaggaRequestTag (imageserverenv_httpmanager env)
+                                                       (T.unpack $ imageinput_url imageinput)
+                                                       (imageserverenv_imaggaapikey env)
+                                                       (imageserverenv_imaggaapisecret env)
       imagedatarequest <- liftIO $ parseRequest (T.unpack $ imageinput_url imageinput)
       imagedataresponse <- liftIO $ httpLbs imagedatarequest (imageserverenv_httpmanager env)
       let imagedata'' = B64.encode $ toStrict $ responseBody imagedataresponse
@@ -140,6 +143,7 @@ postImage imageinput = do
                  , imageinput'_label                 = imageinput_label' 
                  , imageinput'_enableobjectdetection = True
                  , imageinput'_identifier            = fromIntegral rowId
+                 , imageinput'_responsestatuscode    = status
                  }
 
 imageServerT :: ServerT ImageServerAPI ImageServerT

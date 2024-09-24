@@ -25,15 +25,16 @@ data ImageInput' = ImageInput'
   , imageinput'_label                 :: Text
   , imageinput'_enableobjectdetection :: Bool
   , imageinput'_identifier            :: Int
+  , imageinput'_responsestatuscode    :: Int
   } deriving (Show, Eq, Generic)
 
 instance FromJSON ImageInput'
 instance ToJSON ImageInput'
 
 data Image = Image
-  { image_identifer  :: Int
-  , image_label      :: Text
-  , image_url        :: Text
+  { image_identifer          :: Int
+  , image_label              :: Text
+  , image_url                :: Text
   } deriving (Show, Eq, Generic)
 
 instance FromJSON Image

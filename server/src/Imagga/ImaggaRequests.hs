@@ -12,6 +12,7 @@ import Data.Text as T
 import Data.Text.Encoding
 import Network.HTTP.Client
 import Network.HTTP.Types.Header (hAccept,hAuthorization,hContentType)
+import Network.HTTP.Types.Status
 
 {-
 imaggaRequestUpload :: Manager -> FilePath -> Text -> Text -> IO Text
@@ -43,7 +44,7 @@ imaggaRequestUpload httpmanager imagefilepath apikey apisecret = do
   return imaggauploadid
 -}
 
-imaggaRequestTag :: Manager -> String -> Text -> Text -> IO [Text]
+imaggaRequestTag :: Manager -> String -> Text -> Text -> IO ([Text],Int)
 imaggaRequestTag httpmanager imageurl apikey apisecret = do
   imaggatagrequest <- parseRequest $ "https://api.imagga.com/v2/tags?image_url=" ++
                                      imageurl
@@ -66,6 +67,7 @@ imaggaRequestTag httpmanager imageurl apikey apisecret = do
                                }
   imaggatagresponse <- liftIO $ httpLbs imaggatagrequest'
                                         httpmanager
+  let status'            = responseStatus imaggatagresponse
   let imaggatagresponse' = decode $ responseBody imaggatagresponse :: Maybe TagResponse
   let imaggatags         = case imaggatagresponse' of
                              Nothing                  ->
@@ -75,4 +77,4 @@ imaggaRequestTag httpmanager imageurl apikey apisecret = do
                                Prelude.filter (\(_,y) -> y >= 50) $
                                Prelude.map (\x -> ((en . tag) x, confidence x))
                                            (tags $ T.result imaggatagresponse'')
-  return imaggatags
+  return (imaggatags,statusCode status')
