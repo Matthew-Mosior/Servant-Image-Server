@@ -14,7 +14,7 @@ data ImageInput = ImageInput
   { imageinput_url                   :: Text
   , imageinput_label                 :: Maybe Text
   , imageinput_enableobjectdetection :: Bool
-  } deriving (Show, Generic)
+  } deriving (Show, Eq, Generic)
 
 instance FromJSON ImageInput
 instance ToJSON ImageInput
@@ -24,7 +24,8 @@ data ImageInput' = ImageInput'
   , imageinput'_data                  :: Text
   , imageinput'_label                 :: Text
   , imageinput'_enableobjectdetection :: Bool
-  } deriving (Show, Generic)
+  , imageinput'_identifier            :: Int
+  } deriving (Show, Eq, Generic)
 
 instance FromJSON ImageInput'
 instance ToJSON ImageInput'
@@ -33,7 +34,7 @@ data Image = Image
   { image_identifer  :: Int
   , image_label      :: Text
   , image_url        :: Text
-  } deriving (Show, Generic)
+  } deriving (Show, Eq, Generic)
 
 instance FromJSON Image
 instance ToJSON Image

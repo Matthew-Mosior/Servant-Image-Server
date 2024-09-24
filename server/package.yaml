@@ -25,6 +25,7 @@ dependencies:
 - aeson
 - base64-bytestring
 - bytestring
+- client
 - db
 - exceptions
 - http-client
@@ -75,3 +76,15 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - server
+    - api
+    - client
+    - db
+    - hspec
+    - mtl
+    - servant
+    - servant-client
+    - sqlite-simple
+    - text
+    - unliftio-core
+    - wai
+    - warp
