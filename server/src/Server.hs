@@ -81,7 +81,13 @@ getImages querystring = do
                liftIO $ queryNamed (imageserverenv_sqliteconn env)
                                    getimagesquerystring
                                    [":object" := currentquerystring]
-           return $ Prelude.concat results 
+           case results of
+             [[]]     ->
+               throwError $
+                 err500 { errBody = "No image data contains labels provided."
+                        }
+             results' ->
+               return $ Prelude.concat results'
 
 -- GET `/images/{imageId}`
 -- Returns HTTP `200` OK with a JSON response containing image metadata for the specified image.
@@ -91,7 +97,13 @@ getImageById imageid = do
   result' <- liftIO $ queryNamed (imageserverenv_sqliteconn env)
                                  getimagebyidquerystring
                                  [":id" := imageid]
-  return result'
+  case result' of
+    []       ->
+      throwError $
+        err500 { errBody = "No image data at identifier."
+               }
+    result'' ->
+      return result''
 
 -- POST `/images`
 -- Send a JSON request body including an image file or URL, an optional label for the image,
