@@ -60,6 +60,7 @@ You can also query the backend via a couple of different endpoints:
 - `$ curl http://localhost:8080/images`
   -   Returns metadata for all images stored in the backend.
 - `$ curl http://localhost:8080/images$objects="querystring"`
+  - The `querystring` has the format `"string1,string2,...,stringn"`.
   - Returns image metadata for all images that contain labels as identified by *Imagga*. 
 - `$ curl http://localhost:8080/images/id`
   - Returns image metadata for the image stored at the `id`.
