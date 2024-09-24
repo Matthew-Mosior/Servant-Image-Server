@@ -32,9 +32,9 @@ instance FromJSON ImageInput'
 instance ToJSON ImageInput'
 
 data Image = Image
-  { image_identifer          :: Int
-  , image_label              :: Text
-  , image_url                :: Text
+  { image_identifer :: Int
+  , image_label     :: Text
+  , image_url       :: Text
   } deriving (Show, Eq, Generic)
 
 instance FromJSON Image
