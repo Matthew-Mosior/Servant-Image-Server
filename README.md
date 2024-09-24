@@ -9,6 +9,7 @@ Below are a some of the notable libraries used to implement **SIS**:
 - aeson for parsing JSON returned from API calls.
 - sqlite-simple for all things persistence via sqlite3.
 - wai/warp for actually running the webserver.
+- hspec for testing.
 
 ## Persistence
 This tool utilizes sqlite3 in order to persistently store image and related data.
@@ -63,3 +64,10 @@ You can also query the backend via a couple of different endpoints:
 - `$ curl http://localhost:8080/images/id`
   - Returns image metadata for the image stored at the `id`.
   - `imageinput'_identifier` in the response is the `id` to plug in here.
+
+## Test Suite
+A simple test suite was implemented to ensure accuracy to the API specification.
+
+You can run the test suite with the following command:
+
+`$ stack test --test-arguments='[api-key] [api-secret]'`
