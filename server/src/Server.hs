@@ -138,7 +138,7 @@ postImage imageinput = do
                  { imageinput'_url                   = imageinput_url imageinput
                  , imageinput'_data                  = decodeUtf8 imagedata''
                  , imageinput'_label                 = imageinput_label' 
-                 , imageinput'_enableobjectdetection = False
+                 , imageinput'_enableobjectdetection = True
                  , imageinput'_identifier            = fromIntegral rowId
                  }
 
