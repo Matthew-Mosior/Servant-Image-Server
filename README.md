@@ -41,6 +41,7 @@ In another terminal, you could do the following:
 
 `$ curl -X POST -d '{"imageinput_url":"https://docs.imagga.com/static/images/docs/sample/japan-605234_1280.jpg", "imageinput_label": "japan", "imageinput_enableobjectdetection": true}' -H 'Accept: application/json' -H 'Content-type: application/json' http://localhost:8080/images`
  - You can optionally specify `"imageinput_enableobjectdetection": false` should you want to skip querying and labeling via *Imagga*'s API and just stored it in the backend.
+ - Additionally, you can omit the `"imageinput_label"` key and the server will label the image with the identifier that is generated for it.
 
 This will query the API with the image found at `https://docs.imagga.com/static/images/docs/sample/japan-605234_1280.jpg`.
 
