@@ -68,6 +68,8 @@ You can also query the backend via a couple of different endpoints:
 ## Test Suite
 A simple test suite was implemented to ensure accuracy to the API specification.
 
-You can run the test suite with the following command:
+You can run the test suite with the following commands:
+
+`$ cd server`
 
 `$ stack test --test-arguments='[api-key] [api-secret]'`
