@@ -146,34 +146,40 @@ postImage imageinput = do
                                                        (T.unpack $ imageinput_url imageinput)
                                                        (imageserverenv_imaggaapikey env)
                                                        (imageserverenv_imaggaapisecret env)
-      imagedatarequest <- liftIO $ parseRequest (T.unpack $ imageinput_url imageinput)
-      imagedataresponse <- liftIO $ httpLbs imagedatarequest (imageserverenv_httpmanager env)
-      let imagedata'' = B64.encode $ toStrict $ responseBody imagedataresponse
-      rowId <- liftIO $ lastInsertRowId $ imageserverenv_sqliteconn env
-      let imageinput_label' = case imageinput_label imageinput of
-                                Nothing    -> T.pack $ show rowId
-                                Just label -> label
-      _ <- liftIO $ execute (imageserverenv_sqliteconn env)
-                            postimageinsertimagequerystring
-                            ( Image (fromIntegral rowId)
-                                    imageinput_label'
-                                    ( imageinput_url imageinput
-                                    )
-                            )
-      _ <- liftIO $ forM_ imaggatags $ \currenttag ->
-             execute (imageserverenv_sqliteconn env)
-                     postimageinsertobjectsquerystring
-                     ( ImageObjectDetection (fromIntegral rowId)
-                                            currenttag
-                     )
-      return $ ImageInput'
-                 { imageinput'_url                   = imageinput_url imageinput
-                 , imageinput'_data                  = decodeUtf8 imagedata''
-                 , imageinput'_label                 = imageinput_label' 
-                 , imageinput'_enableobjectdetection = True
-                 , imageinput'_identifier            = fromIntegral rowId
-                 , imageinput'_responsestatuscode    = status
-                 }
+      case status of
+        200 -> do
+          imagedatarequest <- liftIO $ parseRequest (T.unpack $ imageinput_url imageinput)
+          imagedataresponse <- liftIO $ httpLbs imagedatarequest (imageserverenv_httpmanager env)
+          let imagedata'' = B64.encode $ toStrict $ responseBody imagedataresponse
+          rowId <- liftIO $ lastInsertRowId $ imageserverenv_sqliteconn env
+          let imageinput_label' = case imageinput_label imageinput of
+                                    Nothing    -> T.pack $ show rowId
+                                    Just label -> label
+          _ <- liftIO $ execute (imageserverenv_sqliteconn env)
+                                postimageinsertimagequerystring
+                                ( Image (fromIntegral rowId)
+                                        imageinput_label'
+                                        ( imageinput_url imageinput
+                                        )
+                                )
+          _ <- liftIO $ forM_ imaggatags $ \currenttag ->
+                 execute (imageserverenv_sqliteconn env)
+                         postimageinsertobjectsquerystring
+                         ( ImageObjectDetection (fromIntegral rowId)
+                                                currenttag
+                         )
+          return $ ImageInput'
+                     { imageinput'_url                   = imageinput_url imageinput
+                     , imageinput'_data                  = decodeUtf8 imagedata''
+                     , imageinput'_label                 = imageinput_label' 
+                     , imageinput'_enableobjectdetection = True
+                     , imageinput'_identifier            = fromIntegral rowId
+                     , imageinput'_responsestatuscode    = status
+                     }
+        _   ->
+          throwError $
+            err500 { errBody = "Imagga error, could not run object detection on image."
+                   }
 
 imageServerT :: ServerT ImageServerAPI ImageServerT
 imageServerT = getImages           :<|>
